@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
+# Added country comparison feature - dual line charts with dashed comparison line
 # Set page title and wide layout
 st.set_page_config(page_title="Country Deep Dive", layout="wide")
 
