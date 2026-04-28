@@ -1,18 +1,17 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-# Dashboard version 1.1 - accessibility update
-# Set the page title and use wide layout for more space
+
+# Sets the page title and uses wide layout for space
 st.set_page_config(page_title="Home", layout="wide")
 
-# ---- LOAD & CLEAN DATA ----
-# Read the World Bank Human Capital Project dataset
+# Reads the dataset
 df = pd.read_csv("WB_HCP_WIDEF.csv")
 
-# Filter for total only (exclude male/female breakdowns on this page)
+# Filter for total only (exclude male/female on this page)
 df = df[df['SEX_LABEL'] == 'Total']
 
-# Define the indicators we want to use across the dashboard
+# Define the indicators to use across the dashboard
 indicators = [
     'Human Capital Index (HCI) (scale 0-1)',
     'Life expectancy at birth (years)',
@@ -22,15 +21,14 @@ indicators = [
     'Youth unemployment rate (%)'
 ]
 
-# Keep only the rows for our selected indicators
+# Keeps only the rows for selected indicators
 df = df[df['INDICATOR_LABEL'].isin(indicators)]
 
 # Define year columns to extract (2000-2023)
 year_cols = [str(y) for y in range(2000, 2024)]
 
 # Melt the dataframe from wide format to long format
-# This converts year columns into a single 'Year' column
-# which is required for Plotly charts
+# Converts year columns into a single 'Year' column which isrequired for Plotly charts
 df_melted = df.melt(
     id_vars=['REF_AREA_LABEL', 'INDICATOR_LABEL'],
     value_vars=year_cols,
@@ -44,8 +42,7 @@ df_melted['Year'] = df_melted['Year'].astype(int)
 # Remove rows with no data
 df_melted = df_melted.dropna(subset=['Value'])
 
-# ---- COLOUR PALETTES ----
-# Define colour palettes for each type of colour blindness
+# Defines colour palettes for each type of colour blindness. Important to me (dont forget to test)
 palettes = {
     "Standard": "RdYlGn",
     "Deuteranopia (red-green)": "Viridis",
@@ -54,24 +51,23 @@ palettes = {
     "Achromatopsia (greyscale)": "Greys"
 }
 
-# Indicators where a LOWER value is BETTER
-# For these we reverse the colour scale so red = bad (high) and green = good (low)
+# Indicators where a LOWER value is better. For these we reverse the colour scale so red = bad (high) and green = good (low)
 reverse_indicators = [
     'Under-five mortality rate',
     'Youth unemployment rate (%)'
 ]
 
-# ---- SIDEBAR CONTROLS ----
+# SIDEBAR CONTROLS
 st.sidebar.title("Controls")
 
-# Dropdown to select which indicator to display on the map
+# Dropdown to select which indicator to display
 map_indicator = st.sidebar.selectbox(
     "Select Indicator for Map",
     options=indicators,
     index=0
 )
 
-# Dropdown to select colour mode for accessibility
+# Dropdown to select colour mode
 colour_mode = st.sidebar.selectbox(
     "Colour Mode",
     options=list(palettes.keys())
@@ -86,11 +82,10 @@ reverse = map_indicator in reverse_indicators
 if reverse:
     palette = palette + "_r"
 
-# ---- PAGE TITLE ----
 st.title("The Human Capital Gap")
 st.markdown("*Where you are born determines your future. This dashboard explores global disparities in health, education, and opportunity.*")
 
-# ---- WORLD MAP ----
+#WORLD MAP
 st.subheader("Global Overview")
 
 # Filter data for the selected indicator
@@ -100,7 +95,7 @@ indicator_df = df_melted[df_melted['INDICATOR_LABEL'] == map_indicator]
 most_recent_year = indicator_df['Year'].max()
 map_df = indicator_df[indicator_df['Year'] == most_recent_year]
 
-# Create the choropleth world map
+# Create the world map
 fig_map = px.choropleth(
     map_df,
     locations='REF_AREA_LABEL',
@@ -128,4 +123,4 @@ fig_map.update_layout(
 st.plotly_chart(fig_map, use_container_width=True)
 
 # Show caption with the year being displayed
-st.caption(f"Showing most recent available data ({most_recent_year})")
+st.caption(f"Showing data for the most recent year available ({most_recent_year})")

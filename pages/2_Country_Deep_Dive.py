@@ -2,18 +2,15 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-# Added country comparison feature - dual line charts with dashed comparison line
+
 # Set page title and wide layout
 st.set_page_config(page_title="Country Deep Dive", layout="wide")
 
-# ---- LOAD & CLEAN DATA ----
-# Read the World Bank Human Capital Project dataset
 df = pd.read_csv("WB_HCP_WIDEF.csv")
 
-# Filter for total only (exclude male/female breakdowns)
 df = df[df['SEX_LABEL'] == 'Total']
 
-# Define the indicators we need for this page
+# Define the indicators we need 
 indicators = [
     'Human Capital Index (HCI) (scale 0-1)',
     'Life expectancy at birth (years)',
@@ -21,13 +18,11 @@ indicators = [
     'Youth unemployment rate (%)'
 ]
 
-# Keep only rows for our selected indicators
 df = df[df['INDICATOR_LABEL'].isin(indicators)]
 
-# Define year columns to extract (2000-2023)
 year_cols = [str(y) for y in range(2000, 2024)]
 
-# Melt from wide to long format for Plotly compatibility
+# Melt from wide to long format for Plotly 
 df_melted = df.melt(
     id_vars=['REF_AREA_LABEL', 'INDICATOR_LABEL'],
     value_vars=year_cols,
@@ -39,7 +34,6 @@ df_melted = df.melt(
 df_melted['Year'] = df_melted['Year'].astype(int)
 df_melted = df_melted.dropna(subset=['Value'])
 
-# ---- COLOUR PALETTES ----
 # Define line colours for each type of colour blindness
 # First colour = primary country, second colour = comparison country
 colour_sequences = {
@@ -50,10 +44,10 @@ colour_sequences = {
     "Achromatopsia (greyscale)": ['#FFFFFF', '#808080']
 }
 
-# ---- SIDEBAR CONTROLS ----
+# SIDEBAR CONTROLS 
 st.sidebar.title("Controls")
 
-# Get sorted list of all countries in the dataset
+# Get sorted list of all countries
 countries = sorted(df_melted['REF_AREA_LABEL'].unique().tolist())
 
 # Primary country dropdown
@@ -71,7 +65,7 @@ selected_compare = st.sidebar.selectbox(
     index=0
 )
 
-# Colour mode dropdown for accessibility
+# Colour mode dropdown 
 colour_mode = st.sidebar.selectbox(
     "Colour Mode",
     options=list(colour_sequences.keys())
@@ -82,7 +76,6 @@ colours = colour_sequences[colour_mode]
 primary_colour = colours[0]
 compare_colour = colours[1]
 
-# ---- PAGE TITLE ----
 st.title("Country Deep Dive")
 
 # Update subtitle based on whether comparison is selected
@@ -91,7 +84,6 @@ if selected_compare != 'None':
 else:
     st.markdown(f"*Exploring human capital trends for **{selected_country}** over time.*")
 
-# ---- HELPER FUNCTION ----
 def make_line_chart(indicator, title, primary_country, compare_country, primary_col, compare_col):
     """
     Creates a line chart for a given indicator.
@@ -143,8 +135,7 @@ def make_line_chart(indicator, title, primary_country, compare_country, primary_
 
     return fig
 
-# ---- CHARTS ----
-# Display charts in a 2x2 grid
+# Display charts
 col1, col2 = st.columns(2)
 col3, col4 = st.columns(2)
 

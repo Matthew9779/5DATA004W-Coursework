@@ -6,11 +6,9 @@ import plotly.graph_objects as go
 # Set page title and wide layout
 st.set_page_config(page_title="Regional Comparison", layout="wide")
 
-# ---- LOAD & CLEAN DATA ----
-# Read the World Bank Human Capital Project dataset
-df = pd.read_csv("WB_HCP_WIDEF.csv")
+=df = pd.read_csv("WB_HCP_WIDEF.csv")
 
-# Define the indicators we need for this page
+# Define the indicators we need =
 indicators = [
     'Human Capital Index (HCI) (scale 0-1)',
     'Life expectancy at birth (years)',
@@ -18,13 +16,13 @@ indicators = [
     'Youth unemployment rate (%)'
 ]
 
-# Keep only rows for our selected indicators
+# Keep only rows for selected indicators
 df = df[df['INDICATOR_LABEL'].isin(indicators)]
 
 # Define year columns to extract (2000-2023)
 year_cols = [str(y) for y in range(2000, 2024)]
 
-# Melt from wide to long format for Plotly compatibility
+# Melt from wide to long format for Plotly
 # Keep SEX_LABEL for gender filtering
 df_melted = df.melt(
     id_vars=['REF_AREA_LABEL', 'INDICATOR_LABEL', 'SEX_LABEL'],
@@ -37,7 +35,6 @@ df_melted = df.melt(
 df_melted['Year'] = df_melted['Year'].astype(int)
 df_melted = df_melted.dropna(subset=['Value'])
 
-# ---- REGION MAPPING ----
 # Map each country to its region for grouping
 region_map = {
     'Afghanistan': 'Asia', 'Albania': 'Europe', 'Algeria': 'Africa',
@@ -98,7 +95,6 @@ region_map = {
 df_melted['Region'] = df_melted['REF_AREA_LABEL'].map(region_map)
 df_melted = df_melted.dropna(subset=['Region'])
 
-# ---- COLOUR PALETTES ----
 # Define colour sequences for each type of colour blindness
 colour_sequences = {
     "Standard": px.colors.qualitative.Plotly,
@@ -108,7 +104,6 @@ colour_sequences = {
     "Achromatopsia (greyscale)": ['#000000', '#404040', '#808080', '#BFBFBF', '#FFFFFF']
 }
 
-# ---- INDICATOR DESCRIPTIONS ----
 # Short descriptions shown to the user for each indicator
 indicator_descriptions = {
     'Human Capital Index (HCI) (scale 0-1)': 'The HCI measures how much human capital a child born today can expect to attain by age 18, given the risks of poor health and poor education in their country. A score of 1.0 means full potential reached. A score of 0.5 means only 50% of potential.',
@@ -117,7 +112,7 @@ indicator_descriptions = {
     'Youth unemployment rate (%)': 'The percentage of young people aged 15-24 who are unemployed and actively looking for work.'
 }
 
-# ---- SIDEBAR CONTROLS ----
+#SIDEBAR CONTROLS
 st.sidebar.title("Controls")
 
 # Dropdown to select which indicator to display
@@ -152,7 +147,7 @@ region_filter = st.sidebar.multiselect(
     default=["Africa", "North America", "South America", "Asia", "Europe", "Oceania"]
 )
 
-# Dropdown to select colour mode for accessibility
+# Dropdown to select colour mode 
 colour_mode = st.sidebar.selectbox(
     "Colour Mode",
     options=list(colour_sequences.keys())
@@ -161,17 +156,14 @@ colour_mode = st.sidebar.selectbox(
 # Get the selected colour sequence
 palette = colour_sequences[colour_mode]
 
-# ---- PAGE TITLE ----
 st.title("Regional Comparison")
 st.markdown(f"*Comparing **{selected_indicator}** across regions ({selected_year})*")
 st.info(indicator_descriptions[selected_indicator])
 
-# ---- HANDLE EMPTY REGION SELECTION ----
 if not region_filter:
     st.warning("Please select at least one region.")
     st.stop()
 
-# ---- BAR CHART DATA ----
 # Filter data for selected indicator, year, gender and regions
 bar_df = df_melted[
     (df_melted['INDICATOR_LABEL'] == selected_indicator) &
@@ -184,7 +176,6 @@ bar_df = df_melted[
 bar_df = bar_df.groupby('Region')['Value'].mean().reset_index()
 bar_df.columns = ['Region', 'Average Value']
 
-# ---- BAR CHART ----
 fig_bar = px.bar(
     bar_df,
     x='Region',
@@ -207,7 +198,6 @@ fig_bar.update_layout(
 # Display bar chart
 st.plotly_chart(fig_bar, use_container_width=True)
 
-# ---- LINE CHART ----
 st.subheader(f"{selected_indicator} Over Time by Region")
 st.markdown("*How has the regional average changed over time?*")
 

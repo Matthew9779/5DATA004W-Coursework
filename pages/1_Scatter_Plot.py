@@ -2,17 +2,15 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Set page title and wide layout
+# Sets page title and wide layout
 st.set_page_config(page_title="Scatter Plot", layout="wide")
 
-# ---- LOAD & CLEAN DATA ----
-# Read the World Bank Human Capital Project dataset
 df = pd.read_csv("WB_HCP_WIDEF.csv")
 
-# Filter for total only (exclude male/female breakdowns)
+# Filter for total only (exclude male/female)
 df = df[df['SEX_LABEL'] == 'Total']
 
-# Define the indicators we need for this page
+# Define the indicators we need
 indicators = [
     'Human Capital Index (HCI) (scale 0-1)',
     'Life expectancy at birth (years)',
@@ -28,7 +26,7 @@ df = df[df['INDICATOR_LABEL'].isin(indicators)]
 # Define year columns to extract (2000-2023)
 year_cols = [str(y) for y in range(2000, 2024)]
 
-# Melt from wide to long format for Plotly compatibility
+# Melt from wide to long format for Plotly
 df_melted = df.melt(
     id_vars=['REF_AREA_LABEL', 'INDICATOR_LABEL'],
     value_vars=year_cols,
@@ -36,21 +34,19 @@ df_melted = df.melt(
     value_name='Value'
 )
 
-# Convert Year to integer and drop missing values
+# Convert Year to integer and drop missing
 df_melted['Year'] = df_melted['Year'].astype(int)
 df_melted = df_melted.dropna(subset=['Value'])
 
-# ---- GET VALID YEARS ----
 # Only show years where all three indicators have data
 school_years = set(df_melted[df_melted['INDICATOR_LABEL'] == 'Expected Years of School']['Year'].unique())
 life_years = set(df_melted[df_melted['INDICATOR_LABEL'] == 'Life expectancy at birth (years)']['Year'].unique())
 mortality_years = set(df_melted[df_melted['INDICATOR_LABEL'] == 'Under-five mortality rate']['Year'].unique())
 
-# Intersection gives us years where all three have data
+#Gives years where all three have data
 valid_years = sorted(school_years & life_years & mortality_years)
 
-# ---- REGION MAPPING ----
-# Map each country to its region for colour coding
+# Map each country to its region for colour coding (Help from Gemini)
 region_map = {
     'Afghanistan': 'Asia', 'Albania': 'Europe', 'Algeria': 'Africa',
     'Angola': 'Africa', 'Argentina': 'South America', 'Armenia': 'Asia',
@@ -106,7 +102,6 @@ region_map = {
     'Zimbabwe': 'Africa'
 }
 
-# ---- COLOUR PALETTES ----
 # Define colour sequences for each type of colour blindness
 colour_sequences = {
     "Standard": px.colors.qualitative.Plotly,
@@ -116,37 +111,35 @@ colour_sequences = {
     "Achromatopsia (greyscale)": ['#000000', '#404040', '#808080', '#BFBFBF', '#FFFFFF']
 }
 
-# ---- SIDEBAR CONTROLS ----
+# SIDEBAR CONTROLS
 st.sidebar.title("Controls")
 
-# Dropdown to select year - only shows years with data for all three indicators
+# Dropdown to select year - only shows years with data for all indicators
 scatter_year = st.sidebar.selectbox(
     "Select Year",
     options=valid_years,
     index=len(valid_years) - 1
 )
 
-# Dropdown to select colour mode for accessibility
+# Dropdown to select colour mode 
 colour_mode = st.sidebar.selectbox(
     "Colour Mode",
     options=list(colour_sequences.keys())
 )
 
-# Multiselect to filter by region
+# filter by region
 region_filter = st.sidebar.multiselect(
     "Filter by Region",
     options=["Africa", "North America", "South America", "Asia", "Europe", "Oceania"],
     default=["Africa", "North America", "South America", "Asia", "Europe", "Oceania"]
 )
 
-# Get the selected colour sequence
+# Get the selected colour
 colour_seq = colour_sequences[colour_mode]
 
-# ---- PAGE TITLE ----
 st.title("Education vs Life Expectancy")
 st.markdown("*Do countries where children spend more years in school have longer life expectancy?*")
 
-# ---- BUILD SCATTER DATA ----
 # Get each indicator separately then merge on country name
 school = df_melted[
     (df_melted['INDICATOR_LABEL'] == 'Expected Years of School') &
@@ -166,13 +159,12 @@ mortality = df_melted[
 # Merge all three indicators into one dataframe
 scatter_df = school.merge(life_exp, on='REF_AREA_LABEL').merge(mortality, on='REF_AREA_LABEL')
 
-# Add region column using region map
+# Add region column 
 scatter_df['Region'] = scatter_df['REF_AREA_LABEL'].map(region_map).fillna('Other')
 
 # Apply region filter
 scatter_df = scatter_df[scatter_df['Region'].isin(region_filter)]
 
-# ---- SCATTER PLOT ----
 fig_scatter = px.scatter(
     scatter_df,
     x='School Years',
