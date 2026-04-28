@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-
+# Dashboard version 1.1 - accessibility update
 # Set the page title and use wide layout for more space
 st.set_page_config(page_title="Home", layout="wide")
 
