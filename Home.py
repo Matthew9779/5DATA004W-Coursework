@@ -83,7 +83,7 @@ if reverse:
     palette = palette + "_r"
 
 st.title("The Human Capital Gap")
-st.markdown("*Where you are born determines your future. This dashboard explores global disparities in health, education, and opportunity.*")
+st.markdown("*Where you are born determines your future. This dashboard explores  disparities in health, education, and opportunities.*")
 
 #WORLD MAP
 st.subheader("Global Overview")
