@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # Set page title and wide layout
 st.set_page_config(page_title="Regional Comparison", layout="wide")
 
-=df = pd.read_csv("WB_HCP_WIDEF.csv")
+df = pd.read_csv("WB_HCP_WIDEF.csv")
 
 # Define the indicators we need =
 indicators = [
